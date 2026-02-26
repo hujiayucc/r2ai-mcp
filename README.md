@@ -32,15 +32,7 @@ npm install r2ai-mcp
   "mcpServers": {
     "r2ai": {
       "command": "npx",
-      "args": ["-y", "@hujiayucc/r2ai-mcp"],
-      "env": {
-        "R2AI_BASEURL": "http://127.0.0.1:5050",
-        "R2AI_TIMEOUT": 30000
-      }
-    },
-    "r2ai": {
-      "command": "npm",
-      "args": ["install", "@hujiayucc/r2ai-mcp"],
+      "args": ["@hujiayucc/r2ai-mcp"],
       "env": {
         "R2AI_BASEURL": "http://127.0.0.1:5050",
         "R2AI_TIMEOUT": 30000
