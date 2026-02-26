@@ -1,29 +1,11 @@
-import type { Config } from "./loadConfig.js"
+import {readFileSync} from "node:fs"
+import {CallToolResult, Config, ListToolsResult, McpTool} from "./types.js"
 
-const JSON_RPC_VERSION = "2.0"
+
 let requestId = 0
 
 function nextId(): number {
   return ++requestId
-}
-
-export interface McpTool {
-  name: string
-  description?: string
-  inputSchema?: {
-    type?: string
-    properties?: Record<string, unknown>
-    required?: string[]
-  }
-}
-
-export interface ListToolsResult {
-  tools: McpTool[]
-}
-
-export interface CallToolResult {
-  content?: Array<{ type: string, text?: string }>
-  isError?: boolean
 }
 
 async function rpc<T>(
@@ -34,10 +16,10 @@ async function rpc<T>(
 ): Promise<T> {
   const url = baseUrl.replace(/\/$/, "") + "/mcp"
   const body = {
-    jsonrpc: JSON_RPC_VERSION,
+    jsonrpc: "2.0",
     id: nextId(),
     method,
-    ...(params ? { params } : {}),
+    ...(params ? {params} : {}),
   }
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), timeoutMs)
@@ -45,7 +27,7 @@ async function rpc<T>(
   try {
     const res = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {"Content-Type": "application/json"},
       body: JSON.stringify(body),
       signal: controller.signal,
     })
@@ -79,17 +61,27 @@ async function rpc<T>(
 }
 
 export async function listTools(config: Config): Promise<ListToolsResult> {
-  const timeout = config.r2aiBridge.timeoutMs ?? 30000
-  const result = await rpc<ListToolsResult>(
-    config.r2aiBridge.url,
-    "tools/list",
-    undefined,
-    timeout
-  )
-  if (!result || !Array.isArray(result.tools)) {
-    return { tools: [] }
+  let result: ListToolsResult | null | undefined = null
+  try {
+    const json = readFileSync(new URL("../tools.json", import.meta.url), "utf-8")
+    result = JSON.parse(json).result
+  } catch {
   }
-  return result
+  if (!result || !Array.isArray(result.tools)) {
+    result = await rpc<ListToolsResult>(
+      config.r2aiBridge.url,
+      "tools/list",
+      undefined,
+      config.r2aiBridge.timeoutMs
+    )
+  }
+  if (!result || !Array.isArray(result.tools)) {
+    return {tools: []}
+  }
+  const tools = result.tools.filter(
+    (tool): tool is McpTool => tool != null && (tool as McpTool).name.length > 0
+  )
+  return {tools}
 }
 
 export async function callTool(
@@ -101,8 +93,8 @@ export async function callTool(
   const result = await rpc<CallToolResult>(
     config.r2aiBridge.url,
     "tools/call",
-    { name, arguments: arguments_ },
+    {name, arguments: arguments_},
     timeout
   )
-  return result ?? { content: [] }
+  return result ?? {content: []}
 }

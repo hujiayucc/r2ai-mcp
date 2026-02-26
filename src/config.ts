@@ -1,11 +1,4 @@
-export interface R2AIBridgeConfig {
-  url: string
-  timeoutMs?: number
-}
-
-export interface Config {
-  r2aiBridge: R2AIBridgeConfig
-}
+import {Config} from "./types.js";
 
 const defaultConfig: Config = {
   r2aiBridge: {
@@ -19,10 +12,14 @@ export function loadConfig(baseUrl?: string, timeoutMs?: number): Config {
     baseUrl ??
     process.env.R2AI_BASEURL ??
     defaultConfig.r2aiBridge.url
-  const time =
+  const rawTime =
     timeoutMs ??
     Number(process.env.R2AI_TIMEOUT) ??
     defaultConfig.r2aiBridge.timeoutMs
+  const time =
+    Number.isFinite(rawTime) && rawTime > 0
+      ? rawTime
+      : (defaultConfig.r2aiBridge.timeoutMs ?? 30000)
   try {
     const parsed: Partial<Config> = {
       r2aiBridge: {

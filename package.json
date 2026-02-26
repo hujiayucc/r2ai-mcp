@@ -1,17 +1,19 @@
 {
   "name": "@hujiayucc/r2ai-mcp",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": "hujiayucc",
   "description": "MCP plugin that proxies tools to R2AIBridge API",
   "bugs": "https://github.com/hujiayucc/r2ai-mcp/issues",
   "homepage": "https://github.com/hujiayucc/r2ai-mcp",
   "type": "module",
-  "files": ["dist", "README.md"],
+  "files": ["dist", "README.md", "package.json"],
   "scripts": {
-    "build": "shx rm -rf dist && tsc && shx chmod +x dist/*.js",
+    "dev": "shx rm -rf dist && tsc && shx chmod +x dist/*.js",
+    "build": "shx rm -rf dist && tsc && node minify.mjs && shx chmod +x dist/*.js",
     "prepare": "npm run build",
     "watch": "tsc --watch",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "test": "npm run dev && node dist/index.js \n# {\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/list\"}\n# {\"jsonrpc\":\"2.0\",\"id\":4,\"method\":\"tools/call\",\"params\":{\"name\":\"r2ai-help\"}}"
   },
   "keywords": ["mcp", "r2", "radare2", "r2aibridge"],
   "bin": {

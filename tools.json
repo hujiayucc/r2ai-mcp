@@ -1,0 +1,691 @@
+{
+  "result": {
+    "tools": [
+      {
+        "name": "r2_open_file",
+        "description": "【r2ai逆向工具】🚪 [会话管理] 打开二进制文件。默认执行基础分析 (a) 以快速识别函数。注意：对于大型文件 (>10MB)，强烈建议将 auto_analyze 设为 false 以免超时。如需深度分析，可后续调用 r2_analyze_file 或使用 r2_run_command 执行 'aa'。\n【触发场景】当用户询问二进制逆向分析、反汇编、漏洞挖掘、radare2命令执行、调试相关问题时，必须优先调用此工具。\n【使用规则】调用前必须确认用户提供了目标文件的绝对路径，禁止捏造不存在的文件路径或命令结果，session_id 不再使用时必须关闭。",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "file_path": {
+              "type": "string",
+              "description": "二进制文件的完整路径"
+            },
+            "session_id": {
+              "type": "string",
+              "description": "可选:使用现有会话 ID,如果不提供则自动创建"
+            },
+            "auto_analyze": {
+              "type": "boolean",
+              "description": "是否自动执行基础分析 (aa 命令)。默认为 true。对于大文件 (>10MB) 请设为 false。",
+              "default": true
+            }
+          },
+          "required": [
+            "file_path"
+          ]
+        }
+      },
+      {
+        "name": "r2_analyze_file",
+        "description": "【r2ai逆向工具】⚡ [深度分析] 一次性执行深度分析 (aaa) 并自动释放资源。支持复用现有 session_id 或根据文件路径查找会话。\n【触发场景】当用户询问二进制逆向分析、反汇编、漏洞挖掘、radare2命令执行、调试相关问题时，必须优先调用此工具。\n【使 用规则】调用前必须确认用户提供了目标文件的绝对路径，禁止捏造不存在的文件路径或命令结果，session_id 不再使用时必须关闭。",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "file_path": {
+              "type": "string",
+              "description": "二进制文件的完整路径"
+            },
+            "session_id": {
+              "type": "string",
+              "description": "可选：现有会话 ID"
+            }
+          },
+          "required": [
+            "file_path"
+          ]
+        }
+      },
+      {
+        "name": "r2_run_command",
+        "description": "【r2ai逆向工具】⚙️ [通用命令] 在指定会话中执行任意 Radare2 命令。支持所有 r2 命令。\n【触发场景】当用户询问二进制逆向分析、反汇编、漏洞挖掘、radare2命令执行、调试相关问题时，必须优先调用此工具。\n【使用规则】调用前必须确认用户提供了目标文件的绝对路径，禁止捏造不存在的文件路径或命令结果，session_id 不再使用时必须关闭。",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "session_id": {
+              "type": "string",
+              "description": "会话 ID"
+            },
+            "command": {
+              "type": "string",
+              "description": "Radare2 命令"
+            }
+          },
+          "required": [
+            "session_id",
+            "command"
+          ]
+        }
+      },
+      {
+        "name": "r2_list_functions",
+        "description": "【r2ai逆向工具】📋 [函数分析] 列出二进制文件中的已识别函数。使用 'afl' 命令。可通过 filter 过滤函数名，防止输出过多。\n【触发场景】当用户询问二进制逆向分析、反汇编、漏洞挖掘、radare2命令执行、调试相关问题时，必须优先调用此工具。\n【使用规则】调用前必须确认用户提供了目标文件的绝对路径，禁止捏造不存在的文件路径或命令结果，session_id 不再使用时必须关闭。",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "session_id": {
+              "type": "string",
+              "description": "会话 ID"
+            },
+            "filter": {
+              "type": "string",
+              "description": "可选:函数名过滤器（如 'sym.Java' 只显示 Java 相 关函数）",
+              "default": ""
+            },
+            "limit": {
+              "type": "integer",
+              "description": "最大返回数量（默认 500）",
+              "default": 500
+            }
+          },
+          "required": [
+            "session_id"
+          ]
+        }
+      },
+      {
+        "name": "r2_list_strings",
+        "description": "【r2ai逆向工具】📝 [逆向第一步] 列出二进制文件中的字符串。通过配置 bin.str.min 进行底层过滤，提高大文件分析性能。\n【 触发场景】当用户询问二进制逆向分析、反汇编、漏洞挖掘、radare2命令执行、调试相关问题时，必须优先调用此工具。\n【使用规则】调用前必须确认用户提供了目标文件的绝对路径，禁止捏造不存在的文件路径或命令结果，session_id 不再使用时必须关闭。",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "session_id": {
+              "type": "string",
+              "description": "会话 ID"
+            },
+            "mode": {
+              "type": "string",
+              "description": "搜索模式: 'data' (iz) 或 'all' (izz)",
+              "default": "data"
+            },
+            "min_length": {
+              "type": "integer",
+              "description": "最小字符串长度（默认 5，在 R2 核心层过滤）",
+              "default": 5
+            }
+          },
+          "required": [
+            "session_id"
+          ]
+        }
+      },
+      {
+        "name": "r2_get_xrefs",
+        "description": "【r2ai逆向工具】🔗 [逻辑追踪必备] 获取指定地址/函数的交叉引用。\n【触发场景】当用户询问二进制逆向分析、反汇编、漏洞挖掘、radare2命令执行、调试相关问题时，必须优先调用此工具。\n【使用规则】调用前必须确认用户提供了目标文件的绝对路径，禁止捏造不存在的文件路径或命令结果，session_id 不再使用时必须关闭。",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "session_id": {
+              "type": "string",
+              "description": "会话 ID"
+            },
+            "address": {
+              "type": "string",
+              "description": "目标地址或函数名"
+            },
+            "direction": {
+              "type": "string",
+              "description": "方向: 'to' (默认) 或 'from'",
+              "default": "to"
+            },
+            "limit": {
+              "type": "integer",
+              "description": "最大返回数量（默认 50）",
+              "default": 50
+            }
+          },
+          "required": [
+            "session_id",
+            "address"
+          ]
+        }
+      },
+      {
+        "name": "r2_get_info",
+        "description": "【r2ai逆向工具】ℹ️ [环境感知] 获取二进制文件的详细信息。包括架构（32/64位）、平台（ARM/x86）、文件类型（ELF/DEX）等。帮助 AI 决定分析策略。\n【触发场景】当用户询问 二进制逆向分析、反汇编、漏洞挖掘、radare2命令执行、调试相关问题时，必须优先调用此工具。\n【使用规则】调用前必须确认用户提供了目标文件的绝对路径，禁止捏造不存在的文件路径或命令结果，session_id 不再使用时必须关闭。",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "session_id": {
+              "type": "string",
+              "description": "会话 ID"
+            },
+            "detailed": {
+              "type": "boolean",
+              "description": "详细模式",
+              "default": false
+            }
+          },
+          "required": [
+            "session_id"
+          ]
+        }
+      },
+      {
+        "name": "r2_decompile_function",
+        "description": "【r2ai逆向工具】🔍 [代码分析] 反编译指定地址的函数为伪代码。使用 'pdc' 命令，将汇编代码转换为类 C 语言的可读代码。\n【触发场景 】当用户询问二进制逆向分析、反汇编、漏洞挖掘、radare2命令执行、调试相关问题时，必须优先调用此工具。\n【使用规则】调用前必须确认用户提供了目标文件的绝对路径，禁止捏造不存在的文件路径或命令结果，session_id 不再使用时必须关闭。",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "session_id": {
+              "type": "string",
+              "description": "会话 ID"
+            },
+            "address": {
+              "type": "string",
+              "description": "函数地址（十六进制格式，如：0x401000 或 main）"
+            }
+          },
+          "required": [
+            "session_id",
+            "address"
+          ]
+        }
+      },
+      {
+        "name": "r2_disassemble",
+        "description": "【r2ai逆向工具】📜 [汇编分析] 反汇编指定地址的代码。使用 'pd' 命令显示汇编指令。\n【触发场景】当用户询问二进制逆向分析、反汇编、漏洞挖掘、radare2命令执行、调试相关问题时，必须优先调用此工具。\n【使用规则】调用前必须确认用户提供了目标文件的绝对路径，禁止捏造不存在的文件路径或命令结果，session_id 不再使用时必须关闭。",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "session_id": {
+              "type": "string",
+              "description": "会话 ID"
+            },
+            "address": {
+              "type": "string",
+              "description": "起始地址（十六进制格式，如：0x401000）"
+            },
+            "lines": {
+              "type": "integer",
+              "description": "反汇编行数（默认10行）",
+              "default": 10
+            }
+          },
+          "required": [
+            "session_id",
+            "address"
+          ]
+        }
+      },
+      {
+        "name": "r2_close_session",
+        "description": "【r2ai逆向工具】🔒 [会话管理] 关闭指定的 Radare2 会话。\n【触发场景】当用户询问二进制逆向分析、反汇编、漏洞挖掘、radare2命令执行、调试相关问题时，必须优先调用此工具。\n【使用规则】调用前必须确认用户提供了目标文件的绝对路径，禁止捏造不存在的文件路径或命令结果，session_id 不再使用时必须关闭。",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "session_id": {
+              "type": "string",
+              "description": "会话 ID"
+            }
+          },
+          "required": [
+            "session_id"
+          ]
+        }
+      },
+      {
+        "name": "r2_analyze_target",
+        "description": "【r2ai逆向工具】🎯 [智能分析] 执行特定的 Radare2 递归分析策略。请根据分析需求选择最轻量级的策略，避免盲目使用全量分析。\n策略说明：\n- 'basic' (aa): 基础分析，识别符号和入口点。\n- 'blocks' (aab): 仅分析当前函数或地址的基本块结构（修复函数截断问题）。\n- 'calls' (aac): 递归分析函数调用目 标（发现未识别的子函数）。\n- 'refs' (aar): 分析数据引用（识别字符串引用、全局变量）。\n- 'pointers' (aad): 分析数据段指针（用于 C++ 虚表、跳转表恢复）。\n- 'full' (aaa): 全量深度分析（耗时极长，仅在小文件或必要时使用）。\n【触发场景】当用户询问二进制逆向分析、反汇编、漏洞挖掘、radare2命令执行、调试相关问题时，必须优先调用此工具。\n【使用规则】调用前必须确认用户提供了目标文件的绝对路径，禁止捏造不存在的文件路径或命令结果，session_id 不再使用时必须关闭。",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "strategy": {
+              "type": "string",
+              "enum": [
+                "basic",
+                "blocks",
+                "calls",
+                "refs",
+                "pointers",
+                "full"
+              ],
+              "description": "分析策略模式"
+            },
+            "address": {
+              "type": "string",
+              "description": "可选：指定分析的起始地址或符号（例如 '0x00401000' 或 'sym.main'）。如果 不填，默认分析全局或当前位置。"
+            },
+            "session_id": {
+              "type": "string",
+              "description": "会话 ID"
+            }
+          },
+          "required": [
+            "strategy",
+            "session_id"
+          ]
+        }
+      },
+      {
+        "name": "r2_manage_xrefs",
+        "description": "【r2ai逆向工具】🔗 [交叉引用管理] 管理代码和数据的交叉引用(Xrefs)。用于查询'谁调用了函数'、'字符串在哪里被使用'，或手动修复缺失的引用关系。\n操作类型说明：\n- 'list_to' (axt): 查询引用了目标地址的位置（例如：谁调用了这个函数？）。\n- 'list_from' (axf): 查询目标地址引用了 哪些位置（例如：这个函数里调用了谁？）。\n- 'add_code' (axc): 手动添加一个代码引用（修复未识别的跳转）。\n- 'add_call' (axC): 手动添加一个函数调用 引用。\n- 'add_data' (axd): 手动添加一个数据引用（如指针指向）。\n- 'add_string' (axs): 手动添加一个字符串引用。\n- 'remove_all' (ax-): 删除指定地 址的所有引用（修复错误的分析）。\n【触发场景】当用户询问二进制逆向分析、反汇编、漏洞挖掘、radare2命令执行、调试相关问题时，必须优先调用此工具。\n【使用规则】调用前必须确认用户提供了目标文件的绝对路径，禁止捏造不存在的文件路径或命令结果，session_id 不再使用时必须关闭。",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "action": {
+              "type": "string",
+              "enum": [
+                "list_to",
+                "list_from",
+                "add_code",
+                "add_call",
+                "add_data",
+                "add_string",
+                "remove_all"
+              ],
+              "description": "要执行的操作类型"
+            },
+            "target_address": {
+              "type": "string",
+              "description": "目标地址或符号（例如 '0x00401000', 'sym.main', 'entry0'）。对于添加操作， 这是引用指向的目标。"
+            },
+            "source_address": {
+              "type": "string",
+              "description": "源地址（可选）。对于添加操作(add_*)，这是发出引用的位置。如果不填，默认为当前光标位置。"
+            },
+            "session_id": {
+              "type": "string",
+              "description": "会话 ID"
+            }
+          },
+          "required": [
+            "action",
+            "target_address",
+            "session_id"
+          ]
+        }
+      },
+      {
+        "name": "r2_config_manager",
+        "description": "【r2ai逆向工具】⚙️ [配置管理] 管理 Radare2 的分析与显示配置 (eval variables)。\n当分析结果不理想、函数截断或需要深度分析时使用。\n关键配置参考：\n- 流量控制: 'anal.hasnext' (继续分析后续代码), 'anal.jmp.after' (无条件跳转后继续)\n- 混淆/大块: 'anal.bb.maxsize' (调整基本块 大小限制)\n- 引用/字符串: 'anal.strings' (开启字符串引用,默认关闭), 'anal.datarefs' (代码引用数据)\n- 边界范围 (anal.in): 'io.maps' (分析所有映射), 'dbg.stack' (分析栈), 'bin.section' (当前段)\n- 跳转表: 'anal.jmp.tbl' (开启实验性跳转表分析)\n【触发场景】当用户询问二进制逆向分析、反汇编、漏洞 挖掘、radare2命令执行、调试相关问题时，必须优先调用此工具。\n【使用规则】调用前必须确认用户提供了目标文件的绝对路径，禁止捏造不存在的文件路径或命令结果，session_id 不再使用时必须关闭。",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "action": {
+              "type": "string",
+              "enum": [
+                "get",
+                "set",
+                "list"
+              ],
+              "description": "操作类型：get(读取当前值), set(修改值), list(搜索配置项)"
+            },
+            "key": {
+              "type": "string",
+              "description": "配置键名，例如 'anal.strings' 或 'anal.in'"
+            },
+            "value": {
+              "type": "string",
+              "description": "要设置的新值 (仅 set 模式需要)。例如 'true', 'false', 'io.maps'"
+            },
+            "session_id": {
+              "type": "string",
+              "description": "会话 ID"
+            }
+          },
+          "required": [
+            "action",
+            "key",
+            "session_id"
+          ]
+        }
+      },
+      {
+        "name": "r2_analysis_hints",
+        "description": "【r2ai逆向工具】🔧 [分析提示] 管理分析提示 (Analysis Hints)。用于手动修正 R2 的分析错误，或优化反汇编显示。\n当反汇编结果看起来不对（如代码被当成数据）、立即数格式难以理解（如需要看 IP 地址/十进制）、或控制流中断时使用。\n操作说明：\n- 'list' (ah): 列出当前地址的提示。\n- 'set_base' (ahi): 修改立即数显示进制 (value='10'十进制, '16'十六进制, 's'字符串, 'i'IP地址)。\n- 'set_arch' (aha): 强制指定后续代码的架构 (value='arm', 'x86')。\n- 'set_bits' (ahb): 强制指定位数 (value='16', '32', '64')。\n- 'override_jump' (ahc): 强制指定 Call/Jmp 的跳转目标地址 (修复间接跳转)。\n- 'override_opcode' (ahd): 直接用自定义字符串替换当前指令显示的文本。\n- 'remove' (ah-): 清除当前地址的所有提示。\n【触发场景】当用户询问二进制逆向分析、反汇编、漏洞挖掘、radare2命令执行、调试相关问题时，必须优先调用此工具。\n【使用规则】调用前必须确认用户提供了目标文件的绝对路径，禁止捏造不存在的文件路径或命令结果，session_id 不再使用时必须关闭。",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "action": {
+              "type": "string",
+              "enum": [
+                "list",
+                "set_base",
+                "set_arch",
+                "set_bits",
+                "override_jump",
+                "override_opcode",
+                "remove"
+              ],
+              "description": "提示操作类型"
+            },
+            "address": {
+              "type": "string",
+              "description": "可选：目标地址（默认为当前光标位置）。"
+            },
+            "value": {
+              "type": "string",
+              "description": "参数值。例如进制类型('10', 's')、架构名、跳转目标地址或替换的指令字符串。"
+            },
+            "session_id": {
+              "type": "string",
+              "description": "会话 ID"
+            }
+          },
+          "required": [
+            "action",
+            "session_id"
+          ]
+        }
+      },
+      {
+        "name": "os_list_dir",
+        "description": "【r2ai逆向工具】📁 [文件目录] 列出目录内容。能力：自动识别并使用 Root 权限。\n技巧：如果不确定 Native 库位置，请先列出 '/data/app/' 目录，找到对应的包名目录（通常包含随机字符），进入后再找 'lib' 目录。\n【触发场景】当用户询问二进制逆向分析、反汇编、漏洞挖掘、radare2命令执行、调试相关问题时，必须优先调用此工具。\n【使用规则】调用前必须确认用户提供了目标文件的绝对路径，禁止捏造不存在的文件路径或命令结果，session_id 不再使用时必须关闭。",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "目录路径"
+            }
+          },
+          "required": [
+            "path"
+          ]
+        }
+      },
+      {
+        "name": "os_read_file",
+        "description": "【r2ai逆向工具】📄 [文本读取] 读取文件的文本内容 (基于 cat)。\n⛔ 警告：严禁读取二进制文件 (如 .so, .db, .apk, .dex, .png)，会导致输出乱码甚至服务崩溃！二进制文件请务必使用 r2_open_file 进行分析。\n特性：自动 Root 提权，自动截断超大文件 (>50KB)，适合读取 xml/json/yaml/conf 等配置文件。\n【触发场景】当用户询问二进制逆向分析、反汇编、漏洞挖掘、radare2命令执 行、调试相关问题时，必须优先调用此工具。\n【使用规则】调用前必须确认用户提供了目标文件的绝对路径，禁止捏造不存在的文件路径或命令结果，session_id 不再使用时必须关闭。",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "目标文件的绝对路径"
+            }
+          },
+          "required": [
+            "path"
+          ]
+        }
+      },
+      {
+        "name": "termux_command",
+        "description": "【r2ai逆向工具】💻 [Shell] 在 Termux 环境中执行系统命令 (Python, Node, Curl, SQLCipher 等)。\n环境：已自动注入 PATH 和 LD_LIBRARY_PATH，可直接运行 'python script.py'。\n权限：\n- use_root=false (默认): 以 Termux 普通用户运行，更安全。\n- use_root=true: 仅在需要读取系统数据库时开启。\n【触发场景】当用户询问二进制逆向分析、反汇编、漏洞挖掘、radare2命令执行、调试相关问题时，必须优先调用此工具。\n【使用规则】调用前必须确认用户提供了目标文件的绝对路径，禁止捏造不存在的文件路径或命令结果，session_id 不再使用时必须关闭。",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "command": {
+              "type": "string",
+              "description": "Shell 命令"
+            },
+            "use_root": {
+              "type": "boolean",
+              "description": "是否提权",
+              "default": false
+            }
+          },
+          "required": [
+            "command"
+          ]
+        }
+      },
+      {
+        "name": "termux_save_script",
+        "description": "【r2ai逆向工具】💾 [编程] 将代码保存到 AI 专属沙盒目录 (/data/data/com.termux/files/home/AI)。\n特性：自动创建目录、自动赋予执行权限 (+x)、自动修正文件所有者。\n用法：保存后，立即使用 termux_command('python filename.py') 运行 。\n【触发场景】当用户询问二进制逆向分析、反汇编、漏洞挖掘、radare2命令执行、调试相关问题时，必须优先调用此工具。\n【使用规则】调用前必须确认用户提供了目标文件的绝对路径，禁止捏造不存在的文件路径或命令结果，session_id 不再使用时必须关闭。",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "filename": {
+              "type": "string",
+              "description": "纯文件名 (例如 'scan.py')"
+            },
+            "content": {
+              "type": "string",
+              "description": "代码内容"
+            }
+          },
+          "required": [
+            "filename",
+            "content"
+          ]
+        }
+      },
+      {
+        "name": "sqlite_query",
+        "description": "【r2ai逆向工具】🗄️ [数据库] 使用系统内置 sqlite3 工具执行 SQL 查询。支持 Root 权限，可直接读取 /data/data 下的私有数据库。请务必使用 LIMIT 限制返回行数，防止输出过大。\n【触发场景】当用户询问二进制逆向分析、反汇编、漏洞挖掘、radare2命令执行、调试相关问题时，必须优先调用此工具。\n【使用规则】调用前必须确认用户提供了目标文件的绝对路径，禁止捏造不存在的文件路径或命令结果，session_id 不再使用时必须关闭。",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "db_path": {
+              "type": "string",
+              "description": "数据库文件的绝对路径 (如 /data/data/com.xxx/databases/msg.db)"
+            },
+            "query": {
+              "type": "string",
+              "description": "要执行的 SQL 语句 (如 'SELECT * FROM user LIMIT 10;')"
+            }
+          },
+          "required": [
+            "db_path",
+            "query"
+          ]
+        }
+      },
+      {
+        "name": "r2_test",
+        "description": "【r2ai逆向工具】🧪 [诊断工具] 测试 Radare2 库是否正常工作。\n【触发场景】当用户询问二进制逆向分析、反汇编、漏洞挖掘、radare2命令执行、调试相关问题时，必须优先调用此工具。\n【使用规则】调用前必须确认用户提供了目标文件的绝对路径，禁止捏造不存在的文件路径或命令结果，session_id 不再使用时必须关闭。",
+        "inputSchema": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        }
+      },
+      {
+        "name": "read_logcat",
+        "description": "【r2ai逆向工具】📝[Logcat]读取Android系统日志。用于分析崩溃堆栈、调试 Patch 结果或监控应用行为。\n【触发场景】当用户询问二进制逆向分析、反汇编、漏洞挖掘、radare2命令执行、调试相关问题时，必须优先调用此工具。\n【使用规则】调用前必须确认用户提供了目标文件的绝对路径，禁止捏造不存在的文件路径或命令结果，session_id 不再使用时必须关闭。",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "lines": {
+              "type": "integer",
+              "description": "读取日志的行数 (建议 100-500，默认 200)"
+            },
+            "filter": {
+              "type": "string",
+              "description": "关键词过滤 (可选，例如 'com.example.app' 或 '致命信号')"
+            },
+            "use_root": {
+              "type": "boolean",
+              "description": "是否使用 Root 权限读取 (读取其他 App 崩溃必须为 true)"
+            }
+          },
+          "required": []
+        }
+      },
+      {
+        "name": "rename_function",
+        "description": "【r2ai逆向工具】🏷️[智能重命名函数]当你分析出某个函数的具体用途或函数功能时（例如：加密、登录验证、初始化），请务必调用此工具将其重命名，操作会自动持久化保存到本地知识库。以便在后续分析或重启会话后保留上下文。\n【触发场景】当用户询问二进制逆向分析、反汇编、漏洞挖掘、radare2命令执行、调试相关问题时，必须优先调用此工具。\n【使用规则】调用前必须确认用户提供了目标文件的绝对路径，禁止捏造不存在的文件路径或命令结果，session_id 不再使用时必须关闭。",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "session_id": {
+              "type": "string",
+              "description": "会话 ID"
+            },
+            "address": {
+              "type": "string",
+              "description": "目标函数地址 (例如 '0x00401000' 或 'sym.main')。留空则默认为当前 seek 的位置。"
+            },
+            "name": {
+              "type": "string",
+              "description": "新的函数名 (只能包含字母、数字、下划线，例如 'AES_Encrypt')"
+            }
+          },
+          "required": [
+            "session_id",
+            "name"
+          ]
+        }
+      },
+      {
+        "name": "simulate_execution",
+        "description": "【r2ai逆向工具】🧪[模拟执行]在 ESIL 沙箱中模拟执行代码。用于在 不运行 App 的情况下计算函数返回值、解密字符串或分析寄存器变化。\n【触发场景】当用户询问二进制逆向分析、反汇编、漏洞挖掘、radare2命令执行、调试相关 问题时，必须优先调用此工具。\n【使用规则】调用前必须确认用户提供了目标文件的绝对路径，禁止捏造不存在的文件路径或命令结果，session_id 不再使用时必须关闭。",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "session_id": {
+              "type": "string",
+              "description": "会话 ID"
+            },
+            "address": {
+              "type": "string",
+              "description": "开始模拟的地址 (例如 '0x1234')。留空默认当前位置。"
+            },
+            "steps": {
+              "type": "integer",
+              "description": "执行的指令步数 (建议 10-100)，防止死循环。"
+            },
+            "init_regs": {
+              "type": "string",
+              "description": "可选：初始化寄存器状态 (例如 'x0=0x1, x1=0x2000')"
+            }
+          },
+          "required": [
+            "session_id",
+            "steps"
+          ]
+        }
+      },
+      {
+        "name": "add_knowledge_note",
+        "description": "【r2ai逆向工具】📝[添加笔记]向持久化知识库添加笔记。用于记录关键发现（如密钥、算法原理、重要结构体成员）。这些笔记会在下次打开文件时自动加载并展示给你，防止信息丢失。\n【触发场景】当用户询问二进制逆向分析、反汇编、漏洞挖掘、radare2命令执行、调试相关问题时，必须优先调用此工具。\n【使用规则】调用前必须确认用户提供了目标文件的绝对路径，禁止捏造不存在的文件路径或命令结果，session_id 不再使用时必须关闭。",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "address": {
+              "type": "string",
+              "description": "相关地址 (例如 '0x1234')"
+            },
+            "note": {
+              "type": "string",
+              "description": "笔记内容 (例如 'AES Key 生成函数，返回值是 Key')"
+            }
+          },
+          "required": [
+            "address",
+            "note"
+          ]
+        }
+      },
+      {
+        "name": "batch_decrypt_strings",
+        "description": "【r2ai逆向工具】🔐 [批量解密] 批量解密字符串，批量模拟执行并提取结果。专为对抗混淆 (OLLVM) 和自定义算法设计。\n核心能力：\n1. 自动定位函数引用点，批量回溯模拟。\n2. 支持所有架构：通过 `instr_size` 和 `result_reg` 适配 ARM64/ARM32/x86。\n3. 解决栈传参：通过 `custom_init` 注入指令 (如 'wv 0x10 @ 0x178004') 手动修补堆栈。\n4. 解决内存布局：通过 `map_size` 扩大内存映射范围。\n注意：仅适用于纯算法函数，无法模拟 malloc/JNI 等外部系统调用。\n【触发场景】当用户询问二进制逆向分析、反汇编、漏洞挖掘、radare2命令执行、调试相关问题时，必须优先调用此工具。\n【使用规则】调用前必须确认用户提供了目标文件的绝对路径，禁止捏造不存在的文件路径或命令结果，session_id 不再使用时必须关闭。",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "session_id": {
+              "type": "string",
+              "description": "会话 ID"
+            },
+            "func_address": {
+              "type": "string",
+              "description": "目标解密函数的地址 (例如 '0x401000')"
+            },
+            "result_reg": {
+              "type": "string",
+              "description": "存放结果字符串指针的寄存器。ARM64通常是'x0', ARM32是'r0', x86是'eax'。默认为 'x0'。",
+              "default": "x0"
+            },
+            "instr_size": {
+              "type": "integer",
+              "description": "指令平均字节数。用于计算回溯地址。ARM64=4, ARM32=4(或2), x86=变长(可填平均值3)。默认为 4。",
+              "default": 4
+            },
+            "pre_steps": {
+              "type": "integer",
+              "description": "向前回溯的指令条数，用于让 CPU 执行参数准备逻辑。默认为 30。",
+              "default": 30
+            },
+            "map_size": {
+              "type": "string",
+              "description": "模拟器内存映射大小。如 果算法引用了远处的数据段，请调大此值。默认为 '0x40000' (256KB)。",
+              "default": "0x40000"
+            },
+            "custom_init": {
+              "type": "string",
+              "description": "【高级插槽】在模拟启动前执行的 R2 命令序列。用于手动初始化栈参数或全局变量。\n示例 (x86栈传参): 'wv 0x1234 @ esp+4; wv 0x5678 @ esp+8'\n示例 (填充全局变量): 'wx 0xff @ 0x80040'",
+              "default": ""
+            }
+          },
+          "required": [
+            "session_id",
+            "func_address"
+          ]
+        }
+      },
+      {
+        "name": "scan_crypto_signatures",
+        "description": "【r2ai逆向工具】🔍 [侦察] 扫描二进制文件中的密码学常量（Magic Numbers）。\n用于快速定位加密算法的位置。例如：自动发现 AES S-Box, RSA Keys, MD5/SHA 常量等。\n建议在分析未知的加密函数前先运行此工具。\n【触发场景】当用户询问二进制逆向分析、反汇编、漏洞挖掘、radare2命令执行、调试相关问题时，必须优先调用此工具。\n【使用规则】调用前必须确认用户提供了目标文件的绝对路径，禁止捏造不存在的文件路径或命令结果，session_id 不再使用时必须关闭。",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "session_id": {
+              "type": "string",
+              "description": "会话 ID"
+            }
+          },
+          "required": [
+            "session_id"
+          ]
+        }
+      },
+      {
+        "name": "apply_hex_patch",
+        "description": "【r2ai 逆向工具】🔨 [修改指令] 对指定地址应用二进制 Patch (修改指令)。\n用于绕过校验、修改返回值等。例如：将 '1a000034' (CBZ) 修改为 '1f2003d5' (NOP)。\n⚠️ 警告：此操作会直接修改内存/文件。如果不确定，请先使用模拟执行测试。\n【触发场景】当用户询问二进制逆向分析、反汇编、漏洞挖掘、radare2命令执行、调 试相关问题时，必须优先调用此工具。\n【使用规则】调用前必须确认用户提供了目标文件的绝对路径，禁止捏造不存在的文件路径或命令结果，session_id 不再使用时必须关闭。",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "session_id": {
+              "type": "string",
+              "description": "会话 ID"
+            },
+            "address": {
+              "type": "string",
+              "description": "Patch 的起始地址 (例如 '0x00401a00')"
+            },
+            "hex_bytes": {
+              "type": "string",
+              "description": "要写入的十六进制机器码 (例如 '1f2003d5')。不需要空格。"
+            }
+          },
+          "required": [
+            "session_id",
+            "address",
+            "hex_bytes"
+          ]
+        }
+      },
+      {
+        "name": "find_jni_methods",
+        "description": "【r2ai逆向工具】🔗 [JNI] 列出所有的 JNI 接口函数。\n这是 Android 逆向的入口点。它会搜索静态导出的 'Java_' 符号以及 'JNI_OnLoad' 函数。\n找到这些函数后，你通常应该从这里开始分析。\n【触发场景】当用户 询问二进制逆向分析、反汇编、漏洞挖掘、radare2命令执行、调试相关问题时，必须优先调用此工具。\n【使用规则】调用前必须确认用户提供了目标文件的绝对路径，禁止捏造不存在的文件路径或命令结果，session_id 不再使用时必须关闭。",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "session_id": {
+              "type": "string",
+              "description": "会话 ID"
+            }
+          },
+          "required": [
+            "session_id"
+          ]
+        }
+      }
+    ]
+  },
+  "jsonrpc": "2.0",
+  "id": 1
+}
