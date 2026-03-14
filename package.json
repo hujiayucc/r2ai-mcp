@@ -6,7 +6,7 @@
   "bugs": "https://github.com/hujiayucc/r2ai-mcp/issues",
   "homepage": "https://github.com/hujiayucc/r2ai-mcp",
   "type": "module",
-  "files": ["dist", "README.md", "package.json"],
+  "files": ["dist", "README.md", "package.json", "tools.json"],
   "scripts": {
     "dev": "shx rm -rf dist && tsc && shx chmod +x dist/*.js",
     "build": "shx rm -rf dist && tsc && node minify.mjs && shx chmod +x dist/*.js",
