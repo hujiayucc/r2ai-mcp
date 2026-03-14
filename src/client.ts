@@ -1,5 +1,6 @@
 import {readFileSync} from "node:fs"
 import {CallToolResult, Config, ListToolsResult, McpTool} from "./types.js"
+import {getRootFileUrl} from "./utils.js"
 
 
 let requestId = 0
@@ -63,7 +64,7 @@ async function rpc<T>(
 export async function listTools(config: Config): Promise<ListToolsResult> {
   let result: ListToolsResult | null | undefined = null
   try {
-    const json = readFileSync(new URL("../tools.json", import.meta.url), "utf-8")
+    const json = readFileSync(getRootFileUrl("tools.json"), "utf-8")
     result = JSON.parse(json).result
   } catch {
   }

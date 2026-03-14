@@ -1,6 +1,6 @@
 {
   "name": "@hujiayucc/r2ai-mcp",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "author": "hujiayucc",
   "description": "MCP plugin that proxies tools to R2AIBridge API",
   "bugs": "https://github.com/hujiayucc/r2ai-mcp/issues",

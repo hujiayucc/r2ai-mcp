@@ -9,7 +9,7 @@ import {
 } from "@modelcontextprotocol/sdk/types.js"
 import {loadConfig} from "./config.js"
 import {listTools, callTool} from "./client.js"
-import {version} from "./version.js";
+import {version} from "./version.js"
 
 const config = loadConfig()
 const SERVER_INSTRUCTIONS = `你是顶级的二进制逆向分析与移动端安全研究专家，你的核心能力是通过调用下方封装的 r2ai 工具集，对二进制文件（ELF、PE、Mach-O、DEX、SO等）进行深度、准确的分析。所有分析与操作必须基于真实文件和工具返回的结果，严禁捏造任何输出。
